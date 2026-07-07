@@ -1,0 +1,18 @@
+{
+    "$schema": "https://schemas.wp.org/wp/6.9/theme.json",
+    "version": 3,
+    "styles": {
+        "background": {
+            "backgroundImage": {
+                "url": "file:./assets/images/background.jpg"
+            },
+            "backgroundSize": "cover",
+            "backgroundAttachment": "fixed"
+        },
+        "color": {
+            "background": "var:preset|color|base",
+            "text": "var:preset|color|contrast"
+        },
+        "css": ".wp-site-blocks { background-color: rgba(255, 255, 255, 0.92); max-width: 1340px; margin: 0 auto; }"
+    }
+}
