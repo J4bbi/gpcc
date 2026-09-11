@@ -503,7 +503,10 @@ def generate_wxr(pages, site_url="https://example.com", input_dir="gpcc_export")
         if not content_html.strip():
             continue
 
-        title = clean_title(page.get('title', 'Untitled').removesuffix(' | GPCC'))
+        raw_title = page.get('title', 'Untitled')
+        if raw_title.endswith(' | GPCC'):
+            raw_title = raw_title[:-len(' | GPCC')]
+        title = clean_title(raw_title)
         url = page.get('url', '')
         category = page.get('_category', 'uncategorized')
         filename = page.get('_filename', f'page-{i}')
