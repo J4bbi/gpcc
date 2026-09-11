@@ -23,6 +23,8 @@ import sys
 from datetime import date
 from bs4 import BeautifulSoup
 
+from content_cleaning import extract_paragraph_html
+
 SOURCE_URL = "https://www.grangeprestonfieldcc.org.uk/post/rolling-update"
 DEFAULT_HTML_PATH = "gpcc_export/html/post_rolling-update.html"
 OUTPUT_DIR = "gpcc_export/by_category/news/rolling_update"
@@ -158,7 +160,13 @@ def parse_rolling_update(soup, anchor_year=None):
                 'body': body,
             })
         elif entries and text:
-            entries[-1]['body'].append(text)
+            # Preserve inline links (see content_cleaning.extract_paragraph_html)
+            # rather than flattening to plain text. header['leftover_body']
+            # above stays plain text - text trailing the bold date/title
+            # within the same <p> - since that's a rare, short fragment and
+            # extracting it would need DOM-slicing after a sibling node
+            # rather than the simple string-slice used there.
+            entries[-1]['body'].append(extract_paragraph_html(p, base_url=SOURCE_URL))
 
     resolve_years(entries, anchor_year)
     for entry in entries:

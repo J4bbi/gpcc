@@ -10,7 +10,9 @@ the complementary fix at scrape time (scoping extraction to the actual
 article container) - this module is the second line of defense for pages
 that don't use that container, or any residual bleed.
 """
+import copy
 import re
+from urllib.parse import urljoin
 
 BOILERPLATE_HEADINGS = {
     'recent posts', 'comments', 'contact us', 'follow us',
@@ -34,6 +36,13 @@ _CATEGORY_FILTER_ITEMS = {
 _DATE_ITEM_RE = re.compile(r'^[A-Za-z]+ \d{1,2}, \d{4}$')
 _READ_TIME_RE = re.compile(r'^\d+ min read$', re.I)
 _COPYRIGHT_RE = re.compile(r'^\s*[\xa9©]\s*\d{4}\b', re.I)
+_TAG_RE = re.compile(r'<[^>]+>')
+
+# Tags extract_paragraph_html() keeps as real markup; everything else gets
+# unwrapped down to its text (Wix wraps nearly all body text in decorative
+# <span style="..."> for font-size/color, which carries no real meaning here).
+_ALLOWED_INLINE_TAGS = {'a', 'strong', 'em', 'b', 'i', 'br'}
+_DANGEROUS_HREF_RE = re.compile(r'^\s*(javascript|data|vbscript):', re.I)
 
 
 def is_boilerplate_heading(text):
@@ -41,7 +50,11 @@ def is_boilerplate_heading(text):
 
 
 def is_boilerplate_paragraph(text):
-    stripped = text.strip()
+    # Paragraphs may now be small HTML fragments (see extract_paragraph_html)
+    # rather than plain text - match against the tag-stripped text so a
+    # boilerplate line that happens to carry <strong>/<a> formatting is still
+    # recognized.
+    stripped = _TAG_RE.sub('', text).strip()
     if stripped.upper() == 'ACCESSIBILITY & PRIVACY':
         return True
     if re.match(r'^Updated:', stripped, re.I):
@@ -51,6 +64,42 @@ def is_boilerplate_paragraph(text):
     if re.match(r'^[\w.+-]+@[\w-]+\.[\w.-]+$', stripped):  # a bare email address, on its own line
         return True
     return False
+
+
+def extract_paragraph_html(tag, base_url=''):
+    """Render a BeautifulSoup tag's inner content as a small, safe HTML
+    fragment: keeps <a href> (made absolute, external links get
+    target=_blank/rel=noopener) and basic emphasis tags, unwraps everything
+    else (the <span style="...">/<u>/<font> wrappers Wix uses purely for
+    inline styling) down to plain text. Without this, paragraphs that
+    contain an inline link (e.g. "...on this Council site.") get flattened
+    to dead, unlinked text - see the news-post accessibility review this was
+    added for.
+
+    Text nodes are HTML-escaped automatically by BeautifulSoup's own string
+    serialization, so the result is safe to insert directly into WXR/HTML
+    output without a further html.escape() pass - doing that pass anyway
+    would double-escape the tags this function deliberately keeps.
+    """
+    working = copy.copy(tag)
+    for el in working.find_all(True):
+        if el.name == 'a':
+            href = (el.get('href') or '').strip()
+            if not href or _DANGEROUS_HREF_RE.match(href):
+                el.unwrap()
+                continue
+            if base_url:
+                href = urljoin(base_url, href)
+            attrs = {'href': href}
+            if href.startswith('http') and 'grangeprestonfieldcc' not in href:
+                attrs['target'] = '_blank'
+                attrs['rel'] = 'noopener noreferrer'
+            el.attrs = attrs
+        elif el.name not in _ALLOWED_INLINE_TAGS:
+            el.unwrap()
+
+    html_str = ''.join(str(c) for c in working.contents)
+    return re.sub(r'\s+', ' ', html_str).strip()
 
 
 def is_boilerplate_list(items):

@@ -185,8 +185,12 @@ def json_to_html_content(data, image_id_map, include_images=True):
 
     for para in data.get('paragraphs', []):
         if para.strip() and not is_boilerplate_paragraph(para):
-            escaped = html.escape(para)
-            html_parts.append(f"<p>{escaped}</p>")
+            # Paragraphs are pre-built, already-safe HTML fragments (see
+            # content_cleaning.extract_paragraph_html) - text nodes are
+            # already entity-escaped by BeautifulSoup's own serialization,
+            # so html.escape() here would double-escape and break the <a>
+            # tags deliberately preserved for inline links.
+            html_parts.append(f"<p>{para}</p>")
 
     # Add lists (skipping the nav menu / category filter / post-byline widgets
     # that render as <ul><li> on every page - see content_cleaning.py)

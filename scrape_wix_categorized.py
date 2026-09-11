@@ -19,6 +19,8 @@ from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse, unquote
 
+from content_cleaning import extract_paragraph_html
+
 BASE_URL = "https://www.grangeprestonfieldcc.org.uk/"
 OUTPUT_DIR = "gpcc_export"
 
@@ -200,11 +202,14 @@ def extract_structured_content(soup, url):
             if text:
                 content['headings'].append({'level': level, 'text': text})
 
-    # Paragraphs
+    # Paragraphs - stored as small HTML fragments (not plain text) so an
+    # inline link inside a paragraph (e.g. "...on this Council site.")
+    # survives instead of being flattened to dead text. See
+    # content_cleaning.extract_paragraph_html().
     for p in content_root.find_all('p'):
         text = p.get_text(strip=True)
         if text and len(text) > 10:
-            content['paragraphs'].append(text)
+            content['paragraphs'].append(extract_paragraph_html(p, base_url=url))
 
     # Links (external and documents) - left page-wide rather than scoped to
     # content_root, since document links are sometimes in a sidebar widget
