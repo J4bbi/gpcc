@@ -13,7 +13,13 @@
     <p class="has-text-align-center">GPCC meets monthly at Cameron House Community Centre, 34 Prestonfield Avenue, Edinburgh. Each meeting below starts as an agenda, with minutes added once available.</p>
     <!-- /wp:paragraph -->
 
-    <!-- wp:query {"query":{"perPage":50,"pages":0,"offset":0,"postType":"event","order":"desc","orderBy":"date","inherit":false,"taxQuery":{"event-categories":[11]}},"layout":{"type":"default"}} -->
+    <!-- Filters on postType alone, not a category term id: every "event"
+         post on this site is always a GPCC meeting occurrence (created only
+         by sync_meetings.py), and term ids are assigned by DB auto-increment
+         - not stable across environments - so baking one in here would only
+         work by coincidence on whichever install happened to create the
+         "Meeting" term first. -->
+    <!-- wp:query {"query":{"perPage":50,"pages":0,"offset":0,"postType":"event","order":"desc","orderBy":"date","inherit":false,"taxQuery":null},"layout":{"type":"default"}} -->
     <div class="wp-block-query">
         <!-- wp:post-template -->
         <!-- wp:group {"className":"gpcc-meeting-card","layout":{"type":"flow"}} -->
