@@ -1,0 +1,214 @@
+<!-- wp:template-part {"slug":"header","tagName":"header"} /-->
+
+<!-- wp:group {"tagName":"main","layout":{"type":"constrained"}} -->
+<main class="wp-block-group">
+
+<!-- Welcome -->
+<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"var:preset|spacing|60","bottom":"var:preset|spacing|60"}}},"layout":{"type":"constrained"}} -->
+<div class="wp-block-group alignfull" style="padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
+    <!-- wp:heading {"textAlign":"center","level":2} -->
+    <h2 class="wp-block-heading has-text-align-center">Welcome</h2>
+    <!-- /wp:heading -->
+
+    <!-- wp:paragraph {"align":"center"} -->
+    <p class="has-text-align-center">Grange Prestonfield Community Council (GPCC) comprises elected local residents and appointed representatives of constituted local interest groups. Together, they work to represent your local community and its neighbourhoods, putting forward your views on your 'place', 'space', amenity and wellbeing to the City Council and to other public agencies.</p>
+    <!-- /wp:paragraph -->
+</div>
+<!-- /wp:group -->
+
+<!-- Latest Post + Next Meeting -->
+<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"var:preset|spacing|40","bottom":"var:preset|spacing|60"}}},"layout":{"type":"constrained"}} -->
+<div class="wp-block-group alignfull" style="padding-top:var(--wp--preset--spacing--40);padding-bottom:var(--wp--preset--spacing--60)">
+    <!-- wp:columns {"align":"wide","style":{"spacing":{"blockGap":{"top":"var:preset|spacing|60","left":"var:preset|spacing|60"}}}} -->
+    <div class="wp-block-columns alignwide">
+        <!-- wp:column -->
+        <div class="wp-block-column">
+            <!-- wp:heading {"textAlign":"center","level":2} -->
+            <h2 class="wp-block-heading has-text-align-center">Latest From GPCC</h2>
+            <!-- /wp:heading -->
+
+            <!-- wp:query {"query":{"perPage":1,"pages":0,"offset":0,"postType":"post","order":"desc","orderBy":"date","inherit":false},"layout":{"type":"default"}} -->
+            <div class="wp-block-query">
+                <!-- wp:post-template -->
+                <!-- wp:group {"className":"gpcc-latest-post","layout":{"type":"flow"}} -->
+                <div class="wp-block-group gpcc-latest-post">
+                    <!-- wp:post-featured-image {"isLink":true} /-->
+                    <!-- wp:group {"className":"gpcc-latest-post-body","layout":{"type":"flow"}} -->
+                    <div class="wp-block-group gpcc-latest-post-body">
+                        <!-- wp:post-date {"className":"gpcc-latest-post-date"} /-->
+                        <!-- wp:post-title {"isLink":true,"level":3} /-->
+                        <!-- wp:post-excerpt {"excerptLength":30} /-->
+                        <!-- wp:read-more {"className":"gpcc-read-more","content":"Read full post &rarr;"} /-->
+                    </div>
+                    <!-- /wp:group -->
+                </div>
+                <!-- /wp:group -->
+                <!-- /wp:post-template -->
+            </div>
+            <!-- /wp:query -->
+
+            <!-- wp:buttons {"layout":{"type":"flex","justifyContent":"center"},"style":{"spacing":{"margin":{"top":"var:preset|spacing|30"}}}} -->
+            <div class="wp-block-buttons" style="margin-top:var(--wp--preset--spacing--30)">
+                <!-- wp:button {"className":"is-style-outline"} -->
+                <div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="/news/">See more News</a></div>
+                <!-- /wp:button -->
+            </div>
+            <!-- /wp:buttons -->
+        </div>
+        <!-- /wp:column -->
+
+        <!-- wp:column -->
+        <div class="wp-block-column">
+            <!-- wp:heading {"textAlign":"center","level":2} -->
+            <h2 class="wp-block-heading has-text-align-center">Next Meeting</h2>
+            <!-- /wp:heading -->
+
+            <!-- wp:shortcode -->
+            [gpcc_next_meeting]
+            <!-- /wp:shortcode -->
+
+            <!-- wp:buttons {"layout":{"type":"flex","justifyContent":"center"},"style":{"spacing":{"margin":{"top":"var:preset|spacing|30"}}}} -->
+            <div class="wp-block-buttons" style="margin-top:var(--wp--preset--spacing--30)">
+                <!-- wp:button {"className":"is-style-outline"} -->
+                <div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="/meetings/">See all Meetings</a></div>
+                <!-- /wp:button -->
+            </div>
+            <!-- /wp:buttons -->
+        </div>
+        <!-- /wp:column -->
+    </div>
+    <!-- /wp:columns -->
+</div>
+<!-- /wp:group -->
+
+<!-- Roles & Responsibilities -->
+<!-- wp:group {"align":"full","backgroundColor":"gpcc-section-bg","className":"gpcc-section-alt","style":{"spacing":{"padding":{"top":"var:preset|spacing|60","bottom":"var:preset|spacing|60"}}},"layout":{"type":"constrained"}} -->
+<div class="wp-block-group alignfull gpcc-section-alt has-gpcc-section-bg-background-color has-background" style="padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
+    <!-- wp:heading {"textAlign":"center","level":2} -->
+    <h2 class="wp-block-heading has-text-align-center">Roles &amp; Responsibilities of GPCC</h2>
+    <!-- /wp:heading -->
+
+    <!-- wp:columns -->
+    <div class="wp-block-columns">
+        <!-- wp:column -->
+        <div class="wp-block-column">
+            <!-- wp:paragraph {"className":"gpcc-icon-circle","align":"center"} -->
+            <p class="gpcc-icon-circle">1</p>
+            <!-- /wp:paragraph -->
+            <!-- wp:heading {"level":3,"textAlign":"center"} -->
+            <h3 class="wp-block-heading has-text-align-center">Statutory consultation</h3>
+            <!-- /wp:heading -->
+            <!-- wp:paragraph {"align":"center"} -->
+            <p class="has-text-align-center">GPCC has the statutory right to be consulted by the City Council on local matters, including certain planning applications and licensing decisions.</p>
+            <!-- /wp:paragraph -->
+        </div>
+        <!-- /wp:column -->
+
+        <!-- wp:column -->
+        <div class="wp-block-column">
+            <!-- wp:paragraph {"className":"gpcc-icon-circle","align":"center"} -->
+            <p class="gpcc-icon-circle">2</p>
+            <!-- /wp:paragraph -->
+            <!-- wp:heading {"level":3,"textAlign":"center"} -->
+            <h3 class="wp-block-heading has-text-align-center">Representing residents</h3>
+            <!-- /wp:heading -->
+            <!-- wp:paragraph {"align":"center"} -->
+            <p class="has-text-align-center">Elected councillors and appointed local group representatives put forward residents' views on neighbourhood and city issues that affect the area.</p>
+            <!-- /wp:paragraph -->
+        </div>
+        <!-- /wp:column -->
+
+        <!-- wp:column -->
+        <div class="wp-block-column">
+            <!-- wp:paragraph {"className":"gpcc-icon-circle","align":"center"} -->
+            <p class="gpcc-icon-circle">3</p>
+            <!-- /wp:paragraph -->
+            <!-- wp:heading {"level":3,"textAlign":"center"} -->
+            <h3 class="wp-block-heading has-text-align-center">Open, monthly meetings</h3>
+            <!-- /wp:heading -->
+            <!-- wp:paragraph {"align":"center"} -->
+            <p class="has-text-align-center">GPCC meets monthly and every meeting is open to all local residents, with details of forthcoming meetings posted on this site.</p>
+            <!-- /wp:paragraph -->
+        </div>
+        <!-- /wp:column -->
+    </div>
+    <!-- /wp:columns -->
+</div>
+<!-- /wp:group -->
+
+<!-- Our Community Councillors -->
+<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"var:preset|spacing|60","bottom":"var:preset|spacing|60"}}},"layout":{"type":"constrained"}} -->
+<div class="wp-block-group alignfull" style="padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
+    <!-- wp:heading {"textAlign":"center","level":2} -->
+    <h2 class="wp-block-heading has-text-align-center">Our Community Councillors</h2>
+    <!-- /wp:heading -->
+
+    <!-- wp:paragraph {"align":"center"} -->
+    <p class="has-text-align-center">GPCC presently has 14 members, appointed by public election in March 2025. Anyone 16 years or over who is a resident in the GPCC area can stand for election, or be co-opted if a vacancy occurs during the four-year term.</p>
+    <!-- /wp:paragraph -->
+
+    <!-- wp:group {"className":"gpcc-cards","layout":{"type":"default"}} -->
+    <div class="wp-block-group gpcc-cards">
+        <!-- TODO: replace these three placeholder cards with the real councillor roster (name / role) - not present in the scraped site content -->
+        <!-- wp:group {"className":"gpcc-card"} -->
+        <div class="wp-block-group gpcc-card">
+            <!-- wp:heading {"level":3} -->
+            <h3 class="wp-block-heading">Councillor Name</h3>
+            <!-- /wp:heading -->
+            <!-- wp:paragraph -->
+            <p>Chair</p>
+            <!-- /wp:paragraph -->
+        </div>
+        <!-- /wp:group -->
+
+        <!-- wp:group {"className":"gpcc-card"} -->
+        <div class="wp-block-group gpcc-card">
+            <!-- wp:heading {"level":3} -->
+            <h3 class="wp-block-heading">Councillor Name</h3>
+            <!-- /wp:heading -->
+            <!-- wp:paragraph -->
+            <p>Secretary</p>
+            <!-- /wp:paragraph -->
+        </div>
+        <!-- /wp:group -->
+
+        <!-- wp:group {"className":"gpcc-card"} -->
+        <div class="wp-block-group gpcc-card">
+            <!-- wp:heading {"level":3} -->
+            <h3 class="wp-block-heading">Councillor Name</h3>
+            <!-- /wp:heading -->
+            <!-- wp:paragraph -->
+            <p>Treasurer</p>
+            <!-- /wp:paragraph -->
+        </div>
+        <!-- /wp:group -->
+    </div>
+    <!-- /wp:group -->
+</div>
+<!-- /wp:group -->
+
+<!-- Our Meeting Locations -->
+<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"var:preset|spacing|60","bottom":"var:preset|spacing|60"}}},"layout":{"type":"constrained"}} -->
+<div class="wp-block-group alignfull" style="padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
+    <!-- wp:heading {"textAlign":"center","level":2} -->
+    <h2 class="wp-block-heading has-text-align-center">Our Meeting Locations</h2>
+    <!-- /wp:heading -->
+
+    <!-- wp:paragraph {"align":"center"} -->
+    <p class="has-text-align-center">GPCC meets monthly, usually at Cameron House Community Centre, 34 Prestonfield Avenue, Edinburgh. All meetings are open to local residents - see the Meetings page for upcoming dates, agendas and minutes.</p>
+    <!-- /wp:paragraph -->
+
+    <!-- wp:buttons {"layout":{"type":"flex","justifyContent":"center"}} -->
+    <div class="wp-block-buttons">
+        <!-- wp:button -->
+        <div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="/meetings/">View Meetings</a></div>
+        <!-- /wp:button -->
+    </div>
+    <!-- /wp:buttons -->
+</div>
+<!-- /wp:group -->
+
+</main>
+<!-- /wp:group -->
+
+<!-- wp:template-part {"slug":"footer","tagName":"footer"} /-->

@@ -1,7 +1,7 @@
 services:
 
   wordpress:
-    image: wordpress:7.0-php8.4-apache
+    image: wordpress:7.1-php8.4-apache
     restart: always
     ports:
       - 8080:80
@@ -13,6 +13,9 @@ services:
     volumes:
       - wordpress:/var/www/html
       - ./gpcc-theme:/var/www/html/wp-content/themes/gpcc-theme
+    depends_on:
+      db:
+        condition: service_healthy
 
   db:
     image: mysql:8.0
@@ -24,6 +27,164 @@ services:
       MYSQL_RANDOM_ROOT_PASSWORD: '1'
     volumes:
       - db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DB_USER}", "-p${DB_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # One-shot provisioner: installs and activates plugins/theme on the shared
+  # volume, then exits. Re-running `docker compose up` is safe - it skips
+  # anything already installed/active. Does NOT run `wp core install`, so it
+  # won't touch an already-configured site; if wp-config.php / core tables
+  # don't exist yet, complete the normal WordPress install screen first.
+  wp-cli:
+    image: wordpress:cli-php8.4
+    depends_on:
+      db:
+        condition: service_healthy
+      wordpress:
+        condition: service_started
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: ${DB_USER}
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
+      WORDPRESS_DB_NAME: ${DB_NAME}
+    volumes:
+      - wordpress:/var/www/html
+      - ./gpcc-theme:/var/www/html/wp-content/themes/gpcc-theme
+    # wordpress:cli is Alpine-based (www-data=uid 82); wordpress:apache is
+    # Debian-based (www-data=uid 33). Pin to 33 explicitly so files this
+    # container writes into the shared volume are owned correctly for Apache/PHP.
+    user: "33:33"
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        set -e
+        until wp core is-installed 2>/dev/null; do
+          echo "wp-cli: WordPress core not installed yet - complete the install screen at http://localhost:8080/ then re-run 'docker compose up wp-cli'."
+          exit 0
+        done
+
+        # wp core install always creates its own demo content (the "Hello
+        # world!" post, its default comment, and "Sample Page") - not
+        # wanted on this site. Deleted by slug/id, safe to re-run once
+        # they're gone.
+        HELLO_ID=$$(wp post list --post_type=post --name=hello-world --field=ID)
+        [ -n "$$HELLO_ID" ] && wp post delete "$$HELLO_ID" --force >/dev/null
+        SAMPLE_ID=$$(wp post list --post_type=page --name=sample-page --field=ID)
+        [ -n "$$SAMPLE_ID" ] && wp post delete "$$SAMPLE_ID" --force >/dev/null
+
+        # This is plain HTTP (no TLS) - WordPress disables Application
+        # Passwords over insecure connections unless it knows it's a
+        # local/dev environment (needed for sync_meetings.py's REST auth).
+        # WORDPRESS_CONFIG_EXTRA on the wordpress service does NOT reliably
+        # set this (confirmed on a genuinely fresh wp-config.php, not just
+        # stale state), so it's set directly here instead.
+        wp config set WP_ENVIRONMENT_TYPE local --type=constant
+
+        wp plugin is-installed events-manager || wp plugin install events-manager
+        wp plugin is-active events-manager || wp plugin activate events-manager
+
+        # Events Manager's own setup (custom DB tables, the event-categories
+        # taxonomy, and the admin role's event/location/category capabilities)
+        # is wired to fire during a real wp-admin activation click and does
+        # NOT run via CLI/REST activation - without this block, event and
+        # location creation both fail (missing tables) and event-categories
+        # never registers (taxonomy gated behind an option that's never set).
+        # dbDelta() and the em_create_*_table() calls are idempotent, so this
+        # is safe to re-run on every provision, not just after a fresh wipe.
+        # Same story for locations specifically: EM_Event::get_post() checks
+        # dbem_locations_enabled (no built-in default - false when unset) and
+        # EM_Locations::is_enabled() checks dbem_location_types['location']
+        # (defaults to an empty array) - without both, assigning location_id
+        # to an event via the REST API silently no-ops (the response even
+        # echoes the location back as if it worked, but it's never persisted).
+        wp option get dbem_categories_enabled >/dev/null 2>&1 || wp option update dbem_categories_enabled 1
+        wp option get dbem_locations_enabled >/dev/null 2>&1 || wp option update dbem_locations_enabled 1
+        wp eval 'update_option("dbem_location_types", array("location" => 1, "url" => 1));'
+        wp eval '
+          require_once WP_PLUGIN_DIR . "/events-manager/em-install.php";
+          foreach ( array(
+            "em_create_events_table", "em_create_recurrences_table", "em_create_timeslots_table",
+            "em_create_event_timeslots_table", "em_create_events_meta_table", "em_create_locations_table",
+            "em_create_bookings_table", "em_create_bookings_meta_table", "em_create_tickets_table",
+            "em_create_tickets_bookings_table", "em_create_tickets_bookings_meta_table",
+          ) as $$fn ) { $$fn(); }
+        '
+        wp cap add administrator \
+          publish_events delete_others_events edit_others_events manage_others_bookings \
+          publish_recurring_events delete_others_recurring_events edit_others_recurring_events \
+          publish_locations delete_others_locations delete_locations edit_others_locations \
+          delete_event_categories edit_event_categories \
+          manage_bookings upload_event_images \
+          delete_events edit_events read_private_events \
+          delete_recurring_events edit_recurring_events \
+          edit_locations read_private_locations read_others_locations \
+          >/dev/null
+
+        wp plugin is-installed wordpress-importer || wp plugin install wordpress-importer
+        wp plugin is-active wordpress-importer || wp plugin activate wordpress-importer
+        wp theme is-active gpcc-theme || wp theme activate gpcc-theme
+
+        # Front page / News / Meetings pages. front-page.html only takes over
+        # "/" when show_on_front=page AND page_on_front is a real page id -
+        # it does NOT apply just because show_on_front=posts plus the
+        # template existing, so a blank "Home" page has to exist to hold
+        # that slot. Same idea for page_for_posts (News, a plain chronological
+        # archive at /news/) and Meetings (post_type=event filtered to the
+        # Meeting category via templates/page-meetings.html - not something
+        # core WP or Events Manager expose at a clean URL on their own).
+        # Looked up and created by slug, so this is safe to re-run.
+        HOME_ID=$$(wp post list --post_type=page --name=home --field=ID)
+        if [ -z "$$HOME_ID" ]; then
+          HOME_ID=$$(wp post create --post_type=page --post_title="Home" --post_name=home --post_status=publish --comment_status=closed --ping_status=closed --porcelain)
+        fi
+        wp option update show_on_front page
+        wp option update page_on_front "$$HOME_ID"
+
+        NEWS_ID=$$(wp post list --post_type=page --name=news --field=ID)
+        if [ -z "$$NEWS_ID" ]; then
+          NEWS_ID=$$(wp post create --post_type=page --post_title="News" --post_name=news --post_status=publish --comment_status=closed --ping_status=closed --porcelain)
+        fi
+        wp option update page_for_posts "$$NEWS_ID"
+
+        MEETINGS_ID=$$(wp post list --post_type=page --name=meetings --field=ID)
+        if [ -z "$$MEETINGS_ID" ]; then
+          MEETINGS_ID=$$(wp post create --post_type=page --post_title="Meetings" --post_name=meetings --post_status=publish --comment_status=closed --ping_status=closed --porcelain)
+        fi
+
+        # Without a "categories page" configured, Events Manager's taxonomy
+        # archive handling (em-taxonomy-frontend.php's template() method)
+        # fakes a is_singular=1 page but never resets queried_object_id from
+        # the term's own ID - so canonical URLs/REST links/actual page
+        # resolution for /events/categories/<slug>/ end up pointing at
+        # whatever unrelated post happens to share that numeric ID (here,
+        # a News post). Pointing this at our own Meetings page makes EM use
+        # a real page id instead, which correctly resolves to
+        # templates/page-meetings.html and its own Meeting-category listing.
+        wp eval 'update_option("dbem_categories_page", '"$$MEETINGS_ID"');'
+
+        # Pretty permalinks: `wp rewrite flush` updates the DB rewrite rules
+        # but - a documented WP-CLI limitation - can't regenerate .htaccess
+        # itself outside a real HTTP request, so write the standard WordPress
+        # rewrite block directly.
+        wp rewrite structure '/%postname%/'
+        wp rewrite flush --hard >/dev/null 2>&1 || true
+        wp eval '
+          $$htaccess = "# BEGIN WordPress\n# The directives (lines) between \"BEGIN WordPress\" and \"END WordPress\" are\n# dynamically generated, and should only be modified via WordPress filters.\n# Any changes to the directives between these markers will be overwritten.\n<IfModule mod_rewrite.c>\nRewriteEngine On\nRewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]\nRewriteBase /\nRewriteRule ^index\.php$$ - [L]\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule . /index.php [L]\n</IfModule>\n\n# END WordPress\n";
+          file_put_contents( ABSPATH . ".htaccess", $$htaccess );
+        '
+
+        # Comments disabled by default, site-wide, for everything.
+        wp option update default_comment_status closed
+        wp option update default_ping_status closed
+        IDS=$$(wp post list --post_type=post,page,event,location --field=ID)
+        if [ -n "$$IDS" ]; then
+          wp post update $$IDS --comment_status=closed --ping_status=closed > /dev/null
+        fi
+
+        echo "wp-cli: provisioning complete."
 
 volumes:
   wordpress:

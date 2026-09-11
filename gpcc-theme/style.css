@@ -4,3 +4,167 @@ Template: twentytwentyfive
 Description: Child theme for Grange Prestonfield Community Council
 Version: 1.0.0
 */
+
+/* ---- Grange House watermark: a background image of <main> itself (a
+   ::after layer, not a separate element in the document), pinned to its
+   bottom edge, non-repeating, fading out towards the top. position+z-index
+   on <main> scope the pseudo-element's stacking to just this box, so it
+   can't escape behind/in front of unrelated ancestors; z-index:-1 then
+   keeps it under <main>'s real child content while still painting above
+   <main>'s own background. Any section with its own solid background
+   (gpcc-section-alt) simply paints over it further down the page. ---- */
+.wp-site-blocks > main {
+    position: relative;
+    z-index: 0;
+}
+
+.wp-site-blocks > main::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 700px;
+    background-image: url("assets/images/grange-house-bg.jpg");
+    background-repeat: no-repeat;
+    background-position: bottom center;
+    background-size: cover;
+    opacity: 0.4;
+    -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 90%);
+    mask-image: linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 90%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* ---- Section backgrounds ---- */
+.gpcc-section-alt {
+    background: #f4f7fe;
+}
+
+/* ---- Card grids (councillors, roles, latest updates) ---- */
+.gpcc-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+}
+
+@media (max-width: 782px) {
+    .gpcc-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+.gpcc-card {
+    background: #fff;
+    padding: 30px;
+    box-shadow: 2.5px 4.33px 15px 0 rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    row-gap: 10px;
+    text-align: center;
+    align-items: center;
+}
+
+.gpcc-card h3 {
+    font-weight: 700;
+    margin: 0;
+}
+
+/* ---- Icon circle, used for roles/responsibilities and contact rows ---- */
+.gpcc-icon-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--wp--preset--color--gpcc-green);
+    color: #fff;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+/* ---- Single latest-post highlight (Welcome -> Latest Post -> Roles) ---- */
+.gpcc-latest-post {
+    background: #fff;
+    border-top: 4px solid var(--wp--preset--color--gpcc-green);
+    box-shadow: 2.5px 4.33px 20px 0 rgba(0, 0, 0, 0.12);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.gpcc-latest-post .wp-block-post-featured-image {
+    margin: 0;
+}
+
+.gpcc-latest-post .wp-block-post-featured-image img {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+}
+
+.gpcc-latest-post-body {
+    padding: 30px;
+}
+
+.gpcc-latest-post-date {
+    color: #999;
+    font-size: var(--wp--preset--font-size--small);
+    margin: 0 0 8px;
+}
+
+.gpcc-latest-post-body .wp-block-post-title {
+    margin: 0 0 16px;
+}
+
+.gpcc-latest-post .wp-block-post-excerpt {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+
+.gpcc-read-more {
+    display: inline-block;
+    margin-top: 16px;
+    font-weight: 600;
+}
+
+/* ---- Next-meeting highlight, next to Latest From GPCC ---- */
+.gpcc-next-meeting {
+    background: #fff;
+    border-top: 4px solid var(--wp--preset--color--gpcc-teal);
+    box-shadow: 2.5px 4.33px 20px 0 rgba(0, 0, 0, 0.12);
+    border-radius: 6px;
+}
+
+.gpcc-next-meeting-body {
+    padding: 30px;
+}
+
+.gpcc-next-meeting-body h3 {
+    margin: 0 0 16px;
+}
+
+/* ---- /news/ listing: divider between entries ---- */
+.gpcc-news-list .wp-block-post-template > li:not(:last-child) {
+    border-bottom: 3px solid var(--wp--preset--color--gpcc-green);
+    padding-bottom: 20px;
+}
+
+/* ---- /meetings/ listing cards ---- */
+.gpcc-meeting-card {
+    background: #fff;
+    box-shadow: 2.5px 4.33px 15px 0 rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+}
+
+.gpcc-meeting-card .wp-block-post-title {
+    margin: 0 0 10px;
+}
+
+.gpcc-meeting-card .wp-block-post-excerpt {
+    color: #666;
+    line-height: 1.6;
+}

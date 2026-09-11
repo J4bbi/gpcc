@@ -1,17 +1,154 @@
 {
-    "$schema": "https://schemas.wp.org/wp/6.9/theme.json",
+    "$schema": "https://schemas.wp.org/wp/7.1/theme.json",
     "version": 3,
+    "templateParts": [
+        {
+            "name": "header",
+            "title": "Header",
+            "area": "header"
+        },
+        {
+            "name": "footer",
+            "title": "Footer",
+            "area": "footer"
+        }
+    ],
+    "settings": {
+        "appearanceTools": true,
+        "color": {
+            "defaultDuotone": false,
+            "defaultGradients": false,
+            "defaultPalette": false,
+            "palette": [
+                {
+                    "slug": "base",
+                    "color": "#FFFFFF",
+                    "name": "Base"
+                },
+                {
+                    "slug": "contrast",
+                    "color": "#111111",
+                    "name": "Contrast"
+                },
+                {
+                    "slug": "accent-1",
+                    "color": "#FFEE58",
+                    "name": "Accent 1"
+                },
+                {
+                    "slug": "accent-2",
+                    "color": "#F6CFF4",
+                    "name": "Accent 2"
+                },
+                {
+                    "slug": "accent-3",
+                    "color": "#503AA8",
+                    "name": "Accent 3"
+                },
+                {
+                    "slug": "accent-4",
+                    "color": "#686868",
+                    "name": "Accent 4"
+                },
+                {
+                    "slug": "accent-5",
+                    "color": "#FBFAF3",
+                    "name": "Accent 5"
+                },
+                {
+                    "slug": "accent-6",
+                    "color": "color-mix(in srgb, currentColor 20%, transparent)",
+                    "name": "Accent 6"
+                },
+                {
+                    "slug": "gpcc-green",
+                    "color": "#6ab43e",
+                    "name": "GPCC Green"
+                },
+                {
+                    "slug": "gpcc-green-light",
+                    "color": "#8abe4f",
+                    "name": "GPCC Light Green"
+                },
+                {
+                    "slug": "gpcc-teal",
+                    "color": "#02d3c9",
+                    "name": "GPCC Teal"
+                },
+                {
+                    "slug": "gpcc-blue",
+                    "color": "#52bcdd",
+                    "name": "GPCC Blue"
+                },
+                {
+                    "slug": "gpcc-section-bg",
+                    "color": "#f4f7fe",
+                    "name": "GPCC Section Background"
+                },
+                {
+                    "slug": "gpcc-ink",
+                    "color": "#001c38",
+                    "name": "GPCC Footer Navy"
+                }
+            ]
+        },
+        "typography": {
+            "fontFamilies": [
+                {
+                    "slug": "gpcc-body",
+                    "fontFamily": "\"Roboto\", -apple-system, BlinkMacSystemFont, sans-serif",
+                    "name": "Roboto"
+                },
+                {
+                    "slug": "gpcc-heading",
+                    "fontFamily": "\"Roboto Slab\", Georgia, serif",
+                    "name": "Roboto Slab"
+                }
+            ]
+        }
+    },
     "styles": {
         "background": {
-            "backgroundImage": {
-                "url": "file:./assets/images/background.jpg"
-            },
             "backgroundSize": "cover",
             "backgroundAttachment": "fixed"
         },
         "color": {
             "background": "var:preset|color|base",
             "text": "var:preset|color|contrast"
+        },
+        "typography": {
+            "fontFamily": "var:preset|font-family|gpcc-body"
+        },
+        "elements": {
+            "link": {
+                "color": {
+                    "text": "var:preset|color|gpcc-green"
+                },
+                ":hover": {
+                    "color": {
+                        "text": "var:preset|color|gpcc-green-light"
+                    }
+                }
+            },
+            "heading": {
+                "typography": {
+                    "fontFamily": "var:preset|font-family|gpcc-heading"
+                }
+            },
+            "button": {
+                "color": {
+                    "background": "var:preset|color|gpcc-green",
+                    "text": "#ffffff"
+                },
+                "border": {
+                    "radius": "4px"
+                },
+                ":hover": {
+                    "color": {
+                        "background": "var:preset|color|gpcc-green-light"
+                    }
+                }
+            }
         },
         "css": ".wp-site-blocks { background-color: rgba(255, 255, 255, 0.92); max-width: 1340px; margin: 0 auto; }"
     }
