@@ -223,6 +223,53 @@ def get_or_create_location(session, site, name, address, town, postcode, region,
     return resp.json()['id']
 
 
+def get_existing_events(session, site):
+    """Return {lowercased event name: item} for every non-trashed event already
+    on the site, so re-running the sync updates meetings rather than
+    duplicating them. Event names are unique per meeting (see build_event),
+    so they're a stable key. context=edit plus status=all is what makes the
+    list include drafts and pending events - without them Events Manager only
+    returns published ones - and scope=all includes past events, not just
+    upcoming."""
+    existing = {}
+    page = 1
+    while True:
+        resp = session.get(
+            f"{site}/",
+            params={
+                'rest_route': '/events-manager/v1/events',
+                'context': 'edit', 'status': 'all', 'scope': 'all',
+                'per_page': 100, 'page': page,
+            },
+            timeout=30,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        for item in data.get('items', []):
+            existing.setdefault(item['name'].strip().lower(), item)
+        if page >= data.get('pagination', {}).get('total_pages', 1):
+            return existing
+        page += 1
+
+
+def update_event(session, site, existing, event, category_id, location_id):
+    """PATCH an already-synced meeting with the latest scraped content/date.
+    Keeps its current post_status (see create_event for why it must be sent
+    explicitly)."""
+    return session.patch(
+        f"{site}/",
+        params={'rest_route': f"/events-manager/v1/events/{existing['id']}"},
+        json={
+            'event_start_date': event['event_start_date'],
+            'content': event['content'],
+            'event_categories': [category_id],
+            'location_id': location_id,
+            'post_status': existing['status'],
+        },
+        timeout=30,
+    )
+
+
 def create_event(session, site, event, publish, category_id, location_id):
     payload = {
         'event_name': event['event_name'],
@@ -329,20 +376,37 @@ def main():
     )
     print(f"Using location {args.location_name!r} (location id {location_id})")
 
-    print(f"Creating {len(events)} events at {args.site} (status={'publish' if args.publish else 'draft'})...")
-    created, failed = 0, 0
+    existing_events = get_existing_events(session, args.site)
+    print(f"Found {len(existing_events)} existing events on the site")
+
+    print(f"Syncing {len(events)} events to {args.site} (new events status={'publish' if args.publish else 'draft'})...")
+    created, updated, unchanged, failed = 0, 0, 0, 0
     for event in events:
-        resp = create_event(session, args.site, event, args.publish, category_id, location_id)
+        existing = existing_events.get(event['event_name'].lower())
+        if existing is None:
+            resp = create_event(session, args.site, event, args.publish, category_id, location_id)
+            label = 'NEW'
+        elif (existing.get('when', {}).get('start_date') == event['event_start_date']
+              and (existing.get('content') or '').strip() == event['content'].strip()):
+            unchanged += 1
+            print(f"  SAME  {event['event_name']}")
+            continue
+        else:
+            resp = update_event(session, args.site, existing, event, category_id, location_id)
+            label = 'UPD'
         # 201 = created cleanly; 200 = created then needed the location
-        # self-heal PATCH (see create_event) - both are a successful outcome.
+        # self-heal PATCH (see create_event), or updated - all successful.
         if resp.status_code in (200, 201):
-            created += 1
-            print(f"  OK    {event['event_name']}")
+            if label == 'NEW':
+                created += 1
+            else:
+                updated += 1
+            print(f"  {label:<5} {event['event_name']}")
         else:
             failed += 1
             print(f"  FAIL  {event['event_name']} -> HTTP {resp.status_code}: {resp.text[:200]}")
 
-    print(f"\nDone: {created} created, {failed} failed.")
+    print(f"\nDone: {created} created, {updated} updated, {unchanged} unchanged, {failed} failed.")
     return 1 if failed else 0
 
 
