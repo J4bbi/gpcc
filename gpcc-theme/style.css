@@ -147,8 +147,16 @@ Version: 1.0.0
 
 /* ---- /news/ listing: divider between entries ---- */
 .gpcc-news-list .wp-block-post-template > li:not(:last-child) {
-    border-bottom: 3px solid var(--wp--preset--color--gpcc-green);
-    padding-bottom: 20px;
+    border-bottom: 1px solid var(--wp--preset--color--accent-6);
+}
+
+.gpcc-news-list .wp-block-post-title {
+    margin: 0 0 8px;
+}
+
+.gpcc-news-list .wp-block-post-excerpt {
+    color: #666;
+    line-height: 1.6;
 }
 
 /* ---- /meetings/ listing cards ---- */
